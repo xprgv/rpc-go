@@ -7,7 +7,7 @@ type threadSafeMap[K comparable, V any] struct {
 	mtx     sync.RWMutex
 }
 
-func newtsmap[K comparable, V any]() threadSafeMap[K, V] {
+func newThreadSafeMap[K comparable, V any]() threadSafeMap[K, V] {
 	return threadSafeMap[K, V]{coreMap: map[K]V{}}
 }
 

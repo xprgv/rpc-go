@@ -121,7 +121,7 @@ func NewRpcConn(c Conn, logger Logger, handlers map[string]Handler, closeHandler
 		outRpcCh: make(chan *rpc, 10),
 
 		idx:  atomic.NewInt64(0),
-		rpcs: newtsmap[int64, *rpc](),
+		rpcs: newThreadSafeMap[int64, *rpc](),
 
 		handlers:     map[string]Handler{},
 		closeHandler: func(closeError error) {},
