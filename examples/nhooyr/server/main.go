@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"os"
 
-	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slog"
 	"nhooyr.io/websocket"
 
 	"github.com/xprgv/rpc-go"
@@ -23,18 +23,29 @@ var rpcHandlers = map[string]rpc.Handler{
 var closeHandler rpc.CloseHandler = func(closeError error) {}
 
 func main() {
-	logger := logrus.New()
-	logger.Level = logrus.InfoLevel
+	slog.SetDefault(
+		slog.New(
+			slog.NewTextHandler(
+				os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo},
+			),
+		),
+	)
 
 	websocketHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wsconn, err := websocket.Accept(w, r, nil)
 		if err != nil {
-			fmt.Println(err)
+			slog.Error("Failed to accept websocket connection", slog.String("error", err.Error()))
 			return
 		}
+		conn := adapter.NewNhooyrAdapter(wsconn)
 
 		go func() {
-			rpcConn := rpc.NewRpcConn(adapter.NewNhooyrAdapter(wsconn), logger, rpcHandlers, closeHandler)
+			rpcConn := rpc.NewRpcConn(
+				conn,
+				slog.Default(),
+				rpcHandlers,
+				closeHandler,
+			)
 			defer rpcConn.Close()
 			select {}
 		}()

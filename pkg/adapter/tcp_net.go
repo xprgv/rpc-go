@@ -6,33 +6,36 @@ import (
 	"github.com/xprgv/rpc-go"
 )
 
-var _ rpc.Conn = (*TcpConnAdapter)(nil)
+var _ rpc.Conn = (*TcpSocketAdapter)(nil)
 
-type TcpConnAdapter struct {
+type TcpSocketAdapter struct {
 	conn *net.TCPConn
 	buf  []byte
 }
 
-func NewTcpConnAdapter(conn *net.TCPConn, bufSize int) *TcpConnAdapter {
-	return &TcpConnAdapter{
+func NewTcpSocketAdapter(conn *net.TCPConn, bufSizeBytes int) *TcpSocketAdapter {
+	return &TcpSocketAdapter{
 		conn: conn,
-		buf:  make([]byte, bufSize),
+		buf:  make([]byte, bufSizeBytes),
 	}
 }
 
-func (a *TcpConnAdapter) Read() ([]byte, error) {
-	n, err := a.conn.Read(a.buf)
+func (s *TcpSocketAdapter) Read() ([]byte, error) {
+	n, err := s.conn.Read(s.buf)
 	if err != nil {
 		return []byte{}, err
 	}
-	return a.buf[:n], nil
+	return s.buf[:n], nil
 }
 
-func (a *TcpConnAdapter) Write(data []byte) error {
-	_, err := a.conn.Write(data)
+func (s *TcpSocketAdapter) Write(data []byte) error {
+	_, err := s.conn.Write(data)
 	return err
 }
 
-func (a *TcpConnAdapter) Close() error {
-	return a.conn.Close()
+func (s *TcpSocketAdapter) Close() error {
+	if s.conn != nil {
+		return s.conn.Close()
+	}
+	return nil
 }

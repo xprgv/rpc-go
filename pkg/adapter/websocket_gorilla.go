@@ -1,7 +1,7 @@
 package adapter
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/gorilla/websocket"
 
@@ -21,18 +21,18 @@ func NewGorillaAdapter(wsconn *websocket.Conn) *GorillaAdapter {
 }
 
 func (a *GorillaAdapter) Read() ([]byte, error) {
-	msgType, msgBin, err := a.wsconn.ReadMessage()
+	msgType, binMsg, err := a.wsconn.ReadMessage()
 	if err != nil {
 		return []byte{}, err
 	}
-	if msgType != websocket.TextMessage {
-		return []byte{}, errors.New("unsupported message type")
+	if msgType != websocket.BinaryMessage {
+		return []byte{}, fmt.Errorf("unsupported message type")
 	}
-	return msgBin, nil
+	return binMsg, nil
 }
 
 func (a *GorillaAdapter) Write(data []byte) error {
-	return a.wsconn.WriteMessage(websocket.TextMessage, data)
+	return a.wsconn.WriteMessage(websocket.BinaryMessage, data)
 }
 
 func (a *GorillaAdapter) Close() error {

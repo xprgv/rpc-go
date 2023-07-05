@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"errors"
+	"time"
 
 	"nhooyr.io/websocket"
 
@@ -24,7 +25,6 @@ func NewNhooyrAdapter(wsconn *websocket.Conn) *NhooyrAdapter {
 func (a *NhooyrAdapter) Read() ([]byte, error) {
 	messageType, binMsg, err := a.wsconn.Read(context.Background())
 	if err != nil {
-		// fmt.Println("failed to read:", err)
 		return []byte{}, err
 	}
 	if messageType != websocket.MessageText {
@@ -34,7 +34,9 @@ func (a *NhooyrAdapter) Read() ([]byte, error) {
 }
 
 func (a *NhooyrAdapter) Write(data []byte) error {
-	return a.wsconn.Write(context.Background(), websocket.MessageText, data)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	return a.wsconn.Write(ctx, websocket.MessageText, data)
 }
 
 func (a *NhooyrAdapter) Close() error {
